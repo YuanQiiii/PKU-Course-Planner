@@ -15,6 +15,7 @@ import os
 import re
 import json
 import pandas as pd
+from selenium.common.exceptions import TimeoutException, StaleElementReferenceException
 
 with open("setting.json", "r", encoding="utf-8") as f:
     loaded_data = json.load(f)  
@@ -38,6 +39,52 @@ driver.switch_to.window(driver.window_handles[-1])
 year_input = wait.until(EC.visibility_of_element_located(
     (By.CSS_SELECTOR, 'input[ng-model="year"]')
 ))
+
+
+
+
+# 修改后的安全获取表格数据函数
+def get_table_data_safely(driver):
+    """安全获取表格数据的函数，包含多重保险机制"""
+    try:
+        # 使用改善后的等待条件
+        WebDriverWait(driver, 3).until(
+            EC.presence_of_element_located((By.CSS_SELECTOR, "table.row-border-table"))
+        )
+        # 检查是否有数据行（包含表头时至少2行）
+        WebDriverWait(driver, 3).until(
+            lambda d: len(d.find_elements(By.CSS_SELECTOR, "table.row-border-table tr")) >= 2
+        )
+    except TimeoutException:
+        return []  # 没有有效数据时提前返回
+
+    try:
+        # 一次性获取整个表格的HTML（原子操作）
+        table_html = driver.find_element(By.CSS_SELECTOR, "table.row-border-table").get_attribute("outerHTML")
+    except StaleElementReferenceException:
+        return []  # 如果表格已消失返回空
+
+    # 使用BeautifulSoup解析静态HTML
+    soup = BeautifulSoup(table_html, "html.parser")
+    rows = soup.select("tr")[1:]  # 跳过表头
+
+    table_data = []
+    for row in rows:
+        cols = row.find_all("td")
+        # 直接获取文本内容，无需与浏览器元素交互
+        table_data.append([col.get_text(strip=True) for col in cols])
+    
+    return table_data
+
+
+def safe_click(element):
+    """更稳定的点击方式"""
+    try:
+        element.click()
+    except WebDriverException:
+        driver.execute_script("arguments[0].click();", element)
+
+
 
 all_data = []
 
@@ -90,20 +137,13 @@ for term in loaded_data["year"]:
                 
                 # 等待表格加载完成
                 try:
-                    table_element = WebDriverWait(driver, 3).until(
-                        EC.presence_of_element_located((By.CSS_SELECTOR, "table.row-border-table"))
-                    )
-                except TimeoutException:
-                    continue  # 没有表格时跳过
-
-                # 立即将元素转换为稳定的文本数据结构
-                rows = table_element.find_elements(By.TAG_NAME, "tr")
-                table_data = []
-                for row in rows[1:]:  # 跳过表头
-                    cols = row.find_elements(By.TAG_NAME, "td")
-                    # 立即提取文本到列表（关键修改）
-                    table_data.append([col.text for col in cols])  # 此时元素仍有效
-
+                    table_data = get_table_data_safely(driver)
+                except StaleElementReferenceException:
+                    # 发生异常时重试一次
+                    table_data = get_table_data_safely(driver)
+                    
+                if not table_data:
+                    continue
                 # 处理已缓存的数据
                 for col_texts in table_data:
                     course_data = {
@@ -121,9 +161,8 @@ for term in loaded_data["year"]:
                         "备注": col_texts[7] if len(col_texts) > 7 else ""
                     }
                     all_data.append(course_data)
-                    
 df = pd.DataFrame(all_data)
 
 df.to_excel("课程数据汇总.xlsx", index=False)
-
+# df.to_csv("课程数据汇总.csv", index=False, encoding='utf-8-sig')
 print("数据收集完成，已保存到'课程数据汇总.xlsx'")
