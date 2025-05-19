@@ -1,8 +1,8 @@
 # PKU Course Crawler
 
-北京大学课程信息爬取工具（Python脚本+Jupyter Notebook版本）
+北京大学课表生成工具（Python脚本+Jupyter Notebook版本）
 
-旨在为 [pkuhub.cn](https://pkuhub.cn/) 提供完整课程信息, 同时也方便同学们选课和提前了解课程安排. 
+旨在为 [pkuhub.cn](https://pkuhub.cn/) 提供各院系开课课程名称, 同时也方便同学们选课和提前了解课程安排. 
 
 ## 特性
 
