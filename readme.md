@@ -2,7 +2,7 @@
 
 北京大学课程信息爬取工具（Python脚本+Jupyter Notebook版本）
 
-旨在为 pkuhub.cn 提供完整课程信息, 同时也方便同学们选课和提前了解课程安排. 
+旨在为 [pkuhub.cn](https://pkuhub.cn/) 提供完整课程信息, 同时也方便同学们选课和提前了解课程安排. 
 
 ## 特性
 
