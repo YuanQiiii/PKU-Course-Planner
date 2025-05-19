@@ -89,31 +89,39 @@ for term in loaded_data["year"]:
                 time.sleep(1)
                 
                 # 等待表格加载完成
-                table_element = WebDriverWait(driver, 10).until(
-                    EC.presence_of_element_located((By.CSS_SELECTOR, "table.row-border-table"))
-                )
-                
-                # 解析表格数据
+                try:
+                    table_element = WebDriverWait(driver, 3).until(
+                        EC.presence_of_element_located((By.CSS_SELECTOR, "table.row-border-table"))
+                    )
+                except TimeoutException:
+                    continue  # 没有表格时跳过
+
+                # 立即将元素转换为稳定的文本数据结构
                 rows = table_element.find_elements(By.TAG_NAME, "tr")
-                
-                for row in rows[1:]:
+                table_data = []
+                for row in rows[1:]:  # 跳过表头
                     cols = row.find_elements(By.TAG_NAME, "td")
+                    # 立即提取文本到列表（关键修改）
+                    table_data.append([col.text for col in cols])  # 此时元素仍有效
+
+                # 处理已缓存的数据
+                for col_texts in table_data:
                     course_data = {
                         "学年学期": term,
                         "院系": dept_name,
                         "表格类型": table_name,
                         "内部学期": inner_term_name,
-                        "课程名": cols[0].text,
-                        "课程类别": cols[1].text if len(cols) > 1 else "",
-                        "参考学分": cols[2].text if len(cols) > 2 else "",
-                        "班号": cols[3].text if len(cols) > 3 else "",
-                        "授课教师": cols[4].text if len(cols) > 4 else "",
-                        "起止周": cols[5].text if len(cols) > 5 else "",
-                        "上课时间": cols[6].text if len(cols) > 6 else "",
-                        "备注": cols[7].text if len(cols) > 7 else ""
+                        "课程名": col_texts[0] if len(col_texts) > 0 else "",
+                        "课程类别": col_texts[1] if len(col_texts) > 1 else "",
+                        "参考学分": col_texts[2] if len(col_texts) > 2 else "",
+                        "班号": col_texts[3] if len(col_texts) > 3 else "",
+                        "授课教师": col_texts[4] if len(col_texts) > 4 else "",
+                        "起止周": col_texts[5] if len(col_texts) > 5 else "",
+                        "上课时间": col_texts[6] if len(col_texts) > 6 else "",
+                        "备注": col_texts[7] if len(col_texts) > 7 else ""
                     }
                     all_data.append(course_data)
-
+                    
 df = pd.DataFrame(all_data)
 
 df.to_excel("课程数据汇总.xlsx", index=False)
