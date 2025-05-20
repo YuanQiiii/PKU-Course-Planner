@@ -50,9 +50,9 @@ pip install pypinyin selenium webdriver-manager beautifulsoup4 requests pandas o
 
 ## 使用方式
 
-- :star2: 使用脚本之前, 请先自行登录北大信息门户, 打开一次课程查询页面, 以确保 `课程查询` 出现在 `足迹` 栏
+- :star2: 使用脚本之前, 请先自行登录北大信息门户, 打开一次课程查询页面, 以确保 `课表查询` 和`课程介绍` 出现在 `足迹` 栏
 - 示例 : 
-![alt text](image-1.png)
+![alt text](image.png)
 
 ### 命令行版本
 
@@ -83,7 +83,7 @@ python main.py
 
 ## 输出文件
 
-- `课程数据汇总+.xlsx`：包含所有课程信息
+- `课表信息汇总+.xlsx`：包含所有课程信息
 
 ## 📜 许可证声明
 
