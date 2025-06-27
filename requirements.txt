@@ -1,7 +1,2 @@
-pypinyin
-requests
-beautifulsoup4
-selenium
-webdriver-manager
+Flask
 pandas
-openpyxl

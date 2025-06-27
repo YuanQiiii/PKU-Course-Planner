@@ -1,3 +1,4 @@
 *.xlsx
 *.csv
 setting.json
+__pycache__
